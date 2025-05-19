@@ -1,4 +1,4 @@
-import sys
+    import sys
 import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -23,11 +23,17 @@ class WriteDataRequest(BaseModel):
 
 @app.post("/write-data")
 def write_to_excel(req: WriteDataRequest):
-    if not os.path.exists(req.filepath):
+    # 🔥 Convert to absolute path to ensure correct location
+    file_path = os.path.abspath(req.filepath)
+
+    # 🧱 Create file if it doesn't exist
+    if not os.path.exists(file_path):
         wb = Workbook()
-        wb.save(req.filepath)
+        wb.save(file_path)
+
+    # 💾 Write data using your existing function
     result = write_data(
-        filepath=req.filepath,
+        filepath=file_path,
         sheet_name=req.sheet_name,
         data=req.data,
         start_cell=req.start_cell
@@ -94,3 +100,5 @@ def download_file(filename: str):
         filename=filename,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
