@@ -1,11 +1,13 @@
 import sys
 import os
+import logging
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from openpyxl import Workbook
 
+logger = logging.getLogger(__name__)
 # Set Python path to find your local modules (src/excel_mcp)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
 
@@ -25,6 +27,8 @@ class WriteDataRequest(BaseModel):
 def write_to_excel(req: WriteDataRequest):
     # 🔥 Convert to absolute path to ensure correct location
     file_path = os.path.abspath(req.filepath)
+    logger.info(f"Received /write-data call — writing to {file_path}")
+    print(f"Payload: {req.dict()}")  # This will show up in logs too
 
     # 🧱 Create file if it doesn't exist
     if not os.path.exists(file_path):
