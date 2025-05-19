@@ -78,6 +78,10 @@ def format_excel_range(req: FormatRequest):
         conditional_format=req.conditional_format
     )
     return {"status": "success", "details": result}
+    
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "MCP server is running"}
 
 # === DOWNLOAD FILE ===
 @app.get("/download")
