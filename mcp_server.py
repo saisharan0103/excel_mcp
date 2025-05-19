@@ -1,16 +1,20 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
-
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
+from openpyxl import Workbook
+
+# Set Python path to find your local modules (src/excel_mcp)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
+
 from excel_mcp.data import write_data
 from excel_mcp.formatting import format_range
 
 app = FastAPI()
 
-# ✅ Input model for writing Excel data
+# === WRITE DATA ===
 class WriteDataRequest(BaseModel):
     filepath: str
     sheet_name: str
@@ -19,11 +23,9 @@ class WriteDataRequest(BaseModel):
 
 @app.post("/write-data")
 def write_to_excel(req: WriteDataRequest):
-    
     if not os.path.exists(req.filepath):
         wb = Workbook()
         wb.save(req.filepath)
-        
     result = write_data(
         filepath=req.filepath,
         sheet_name=req.sheet_name,
@@ -32,8 +34,7 @@ def write_to_excel(req: WriteDataRequest):
     )
     return {"status": "success", "details": result}
 
-
-# ✅ Input model for formatting Excel ranges
+# === FORMAT RANGE ===
 class FormatRequest(BaseModel):
     filepath: str
     sheet_name: str
@@ -77,3 +78,15 @@ def format_excel_range(req: FormatRequest):
         conditional_format=req.conditional_format
     )
     return {"status": "success", "details": result}
+
+# === DOWNLOAD FILE ===
+@app.get("/download")
+def download_file(filename: str):
+    file_path = os.path.abspath(filename)
+    if not os.path.exists(file_path):
+        return {"status": "error", "message": f"File '{filename}' not found."}
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
